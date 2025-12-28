@@ -1,5 +1,6 @@
 import sqlite3
 from contextlib import contextmanager
+import app
 
 
 DB_PATH = "invoices.db"
@@ -104,6 +105,7 @@ def save_inv_extraction(result):
             
             # Insert line items
             line_items = data.get("Items", [])
+            cursor.execute("DELETE FROM items WHERE InvoiceId = ?", (invoice_id,))
             for item in line_items:
                 cursor.execute("""
                     INSERT INTO items 
@@ -117,3 +119,59 @@ def save_inv_extraction(result):
                     item.get("UnitPrice"),
                     item.get("Amount")
                 ))
+
+def get_invoices_by_vendor(vendor_name):
+    with get_db() as conn:
+        cursor = conn.cursor()
+        cursor.execute("select InvoiceId from invoices where VendorName = ?",(vendor_name,))
+        rows= cursor.fetchall()
+        invoices = []
+        for r in rows:
+            invoice_id = r[0]  
+            invoices.append(getInvoiceById(invoice_id))  
+
+    return invoices
+
+def getInvoiceById(invoice_id):
+    with get_db() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT *
+            FROM invoices
+            WHERE InvoiceId = ?;
+        """, (invoice_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        cursor.execute("""
+            SELECT Description, Name, Quantity, UnitPrice, Amount
+            FROM items
+            WHERE InvoiceId = ?;
+        """, (invoice_id,))
+        items_rows = cursor.fetchall()
+    
+    items = []
+    for item in items_rows:
+        items.append({
+            "Description": item[0],
+            "Name": item[1],
+            "Quantity": item[2],
+            "UnitPrice": item[3],
+            "Amount": item[4]
+        })
+
+    return {
+        "InvoiceId": row[0],
+        "VendorName": row[1],
+        "InvoiceDate": row[2],
+        "BillingAddressRecipient": row[3],
+        "ShippingAddress": row[4],
+        "SubTotal": row[5],
+        "ShippingCost": row[6],
+        "InvoiceTotal": row[7],
+        "Items": items
+    }
+

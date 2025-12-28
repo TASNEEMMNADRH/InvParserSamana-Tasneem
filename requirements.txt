@@ -2,3 +2,7 @@ fastapi
 uvicorn
 oci
 python-multipart
+
+
+httpx
+pytest
