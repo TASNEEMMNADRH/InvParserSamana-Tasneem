@@ -60,13 +60,11 @@ async def extract(file: UploadFile = File(...)):
         ]
     )
     try:
-        start_time = time.time()   # זמן התחלה
+        start_time = time.time()     
         response = doc_client.analyze_document(request)
-        end_time = time.time()     # זמן סיום
+        end_time = time.time()     
         prediction_time = end_time - start_time
-        print(f"Time taken: {prediction_time:.2f} seconds")
-
-
+        print(f"Time taken : {prediction_time:.2f} seconds")
 
     except Exception as e:
         raise HTTPException(
