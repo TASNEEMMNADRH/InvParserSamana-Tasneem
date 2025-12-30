@@ -62,15 +62,15 @@ async def extract(file: UploadFile = File(...)):
     try:
         start_time = time.time()     
         response = doc_client.analyze_document(request)
-        end_time = time.time()     
+        end_time = time.time()        
         prediction_time = end_time - start_time
-        print(f"Time taken : {prediction_time:.2f} seconds")
+        print(f"Time taken  : {prediction_time:.2f} seconds")
 
     except Exception as e:
         raise HTTPException(
             status_code=503,
             detail={
-                "error": "The service is currently unavailable. Please try again later."
+                "error": "The service is currently unavailable. Please try again later. "
             }
         )
     
