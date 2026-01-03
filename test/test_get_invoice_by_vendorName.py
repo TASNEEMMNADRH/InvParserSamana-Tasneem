@@ -77,8 +77,8 @@ class TestGetInvoicesByVendorName(unittest.TestCase):
         
     def tearDown(self):
         clean_db() 
-
-"""from fastapi.testclient import TestClient
+"""
+from fastapi.testclient import TestClient
 from unittest.mock import patch
 
 from app import app  # אם הקובץ שלך לא נקרא app.py תשני בהתאם
