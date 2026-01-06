@@ -43,7 +43,7 @@ def build_fake_oci_response(doc_type_confidence=0.95, include_document_fields=Tr
         items_f.field_value.items = i_list    # IMPORTANT
         return items_f
     # ---------- build 1 item (i) with inner fields (j) ----------
-    j_list = [
+    j_list = [ 
         make_j("Description", "Newell 330 Art, Office Supplies, OFF-AR-5309"),
         make_j("Name", "Blue Pen"),
         make_j("Quantity", "2"),
@@ -79,7 +79,7 @@ def build_fake_oci_response(doc_type_confidence=0.95, include_document_fields=Tr
     fake_response.data = data
     return fake_response
 
-class TestYourFeature(unittest.TestCase):
+class TestNewExtract(unittest.TestCase):
     """Integration tests for POST /extract (success + failures)"""
     def setUp(self):
         init_db()
@@ -95,7 +95,7 @@ class TestYourFeature(unittest.TestCase):
         fake_response = build_fake_oci_response(doc_type_confidence=0.95, include_document_fields=True)
         mock_client = MagicMock()
         mock_get_client.return_value = mock_client
-        mock_client.analyze_document.return_value = build_fake_oci_response()
+        mock_client.analyze_document.return_value = fake_response
         response = self.client.post("/extract", files=self.files)
         self.assertEqual(response.status_code, 200)
         result = response.json()
