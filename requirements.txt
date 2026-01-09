@@ -4,6 +4,12 @@ oci
 python-multipart
 
 
-
 httpx
 pytest
+
+pytest
+pytest-cov
+pytest-html
+sqlalchemy
+
+allure-pytest
