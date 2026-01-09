@@ -22,6 +22,7 @@ class TestGetInvoicesByVendorName(unittest.TestCase):
                     "UnitPrice": 5.0,
                     "Amount": 10.0
                 }
+                
             ]
         }
 

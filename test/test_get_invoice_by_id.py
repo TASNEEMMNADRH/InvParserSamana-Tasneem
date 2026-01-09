@@ -50,6 +50,7 @@ class TestGetInvoiceById(unittest.TestCase):
         self.assertGreater(len(items), 0)
         
 
+
     def test_invoice_not_found(self):
         invalid_id = 999999
         response = self.client.get(f"/invoice/{invalid_id}")
