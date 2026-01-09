@@ -22,9 +22,12 @@ class TestGetInvoicesByVendorName(unittest.TestCase):
                     "UnitPrice": 5.0,
                     "Amount": 10.0
                 }
-                
             ]
         }
+
+
+
+
 
         invoice_2 = {
             "InvoiceId": 2,

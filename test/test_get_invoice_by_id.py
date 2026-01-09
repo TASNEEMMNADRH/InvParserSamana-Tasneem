@@ -26,6 +26,7 @@ class TestGetInvoiceById(unittest.TestCase):
             ]
         }
 
+
         result = {"data": SEED_DATA}
         save_inv_extraction(result)
 
@@ -49,7 +50,6 @@ class TestGetInvoiceById(unittest.TestCase):
         self.assertIsInstance(items, list)
         self.assertGreater(len(items), 0)
         
-
 
     def test_invoice_not_found(self):
         invalid_id = 999999
