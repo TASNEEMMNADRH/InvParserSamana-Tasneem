@@ -1,14 +1,13 @@
-# models.py
 from typing import List, Optional
-from pytest import Session
-from sqlalchemy import Column, String, Integer, Float, ForeignKey
-from sqlalchemy.orm import relationship
-# All models inherit from this base class
-from base import Base
+from sqlalchemy import Column, String, Float, ForeignKey
+from sqlalchemy.orm import relationship, Session
+from mvc_model.models.base import Base
+
+
 class Confidence(Base):
-    __tablename__ = 'confidences'
-    
-    InvoiceId = Column(String, ForeignKey('invoices.InvoiceId'), primary_key=True)
+    __tablename__ = "confidences"
+
+    InvoiceId = Column(String, ForeignKey("invoices.InvoiceId"), primary_key=True)
     VendorName = Column(Float)
     InvoiceDate = Column(Float)
     BillingAddressRecipient = Column(Float)
@@ -16,10 +15,10 @@ class Confidence(Base):
     SubTotal = Column(Float)
     ShippingCost = Column(Float)
     InvoiceTotal = Column(Float)
-    
+
     invoice = relationship("Invoice", back_populates="confidences")
 
-    #---------------------------------------CRUD------------------------------------#
+
 def create_confidence(db: Session, confidence_data: dict) -> Confidence:
     confidence = Confidence(
         InvoiceId=confidence_data.get("InvoiceId"),
@@ -33,7 +32,7 @@ def create_confidence(db: Session, confidence_data: dict) -> Confidence:
     )
     db.add(confidence)
     db.commit()
-    db.refresh(confidence)
+    db.refresh
     return confidence
 
 

@@ -1,63 +1,94 @@
-# models.py
+# models/item.py
 from typing import List, Optional
-from pytest import Session
 from sqlalchemy import Column, String, Integer, Float, ForeignKey
-from sqlalchemy.orm import relationship
-# All models inherit from this base class
-from base import Base
-from models.invoice import get_invoice_by_id
+from sqlalchemy.orm import relationship, Session  # ✅ SQLAlchemy Session 
+from mvc_model.models.base import Base
+from mvc_model.models.invoice import get_invoice_by_id
+
 
 class Item(Base):
-    __tablename__ = 'items'
-    
+    __tablename__ = "items"
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    InvoiceId = Column(String, ForeignKey('invoices.InvoiceId'))
+    InvoiceId = Column(String, ForeignKey("invoices.InvoiceId"))
     Description = Column(String)
     Name = Column(String)
     Quantity = Column(Float)
     UnitPrice = Column(Float)
     Amount = Column(Float)
-    
+
     invoice = relationship("Invoice", back_populates="items")
 
-def create_item(db: Session, item_data: dict) -> Item:
-    invoice = get_invoice_by_id(db,item_data.get("InvoiceId"))
-    if invoice :
-        item = Item(
-            InvoiceId = item_data.get("InvoiceId"),
-            Description = item_data.get("Description"),
-            Name =  item_data.get("Name"),
-            Quantity =  item_data.get("Quantity"),
-            UnitPrice =  item_data.get("UnitPrice"),
-            Amount =  item_data.get("Amount")
-        )
-        db.add(item)
-        db.commit()
-        return item
-    return None
 
+# -------------------------
+# CREATE
+# -------------------------
+def create_item(db: Session, item_data: dict) -> Optional[Item]:
+    """
+    Success:
+      - אם invoice קיים -> יוצר Item, עושה commit, refresh ומחזיר Item
+    Failure:
+      - אם invoice לא קיים -> מחזיר None
+    """
+    invoice_id = item_data.get("InvoiceId")
+    invoice = get_invoice_by_id(db, invoice_id)
+    if not invoice:
+        return None
 
-
-def get_item_by_id(db: Session, item_id: int) -> Optional[Item]:
-    item = db.query(Item).filter(Item.InvoiceId==item_id).first()
+    item = Item(
+        InvoiceId=invoice_id,
+        Description=item_data.get("Description"),
+        Name=item_data.get("Name"),
+        Quantity=item_data.get("Quantity"),
+        UnitPrice=item_data.get("UnitPrice"),
+        Amount=item_data.get("Amount"),
+    )
+    db.add(item)
+    db.commit()
+    db.refresh
     return item
 
 
+# -------------------------
+# READ
+# -------------------------
+def get_item_by_id(db: Session, item_id: int) -> Optional[Item]:
+    """
+    Success: מחזיר Item אם קיים
+    Failure: מחזיר None אם לא קיים
+    """
+    return db.query(Item).filter(Item.id == item_id).first()  # ✅ תיקון: id ולא InvoiceId
+
+
 def get_items_by_invoice_id(db: Session, invoice_id: str) -> List[Item]:
-    items = db.query(Item).filter(Item.InvoiceId==invoice_id).all()
-    return items
+    """
+    מחזיר תמיד list (אולי ריק)
+    """
+    return db.query(Item).filter(Item.InvoiceId == invoice_id).all()
 
 
 def get_items(db: Session) -> List[Item]:
-     items = db.query(Item).all()
-     return items
+    """
+    מחזיר תמיד list (אולי ריק)
+    """
+    return db.query(Item).all()
 
 
+# -------------------------
+# UPDATE
+# -------------------------
 def update_item(db: Session, item_id: int, update_data: dict) -> Optional[Item]:
+    """
+    Success:
+      - אם item קיים -> מעדכן שדות שמופיעים ב-update_data, עושה commit+refresh ומחזיר Item
+    Failure:
+      - אם item לא קיים -> מחזיר None
+    """
     item = get_item_by_id(db, item_id)
     if not item:
         return None
 
+    # בדרך כלל לא מעדכנים FK InvoiceId, אבל אם רוצים לאפשר - נשאיר.
     if "InvoiceId" in update_data:
         item.InvoiceId = update_data["InvoiceId"]
     if "Description" in update_data:
@@ -76,11 +107,18 @@ def update_item(db: Session, item_id: int, update_data: dict) -> Optional[Item]:
     return item
 
 
-
+# -------------------------
+# DELETE
+# -------------------------
 def delete_item(db: Session, item_id: int) -> bool:
-    item = get_item_by_id(db,item_id)
-    if item : 
-        db.delete(item)
-        db.commit()
-        return True
-    return False
+    """
+    Success: אם item קיים -> מוחק ומחזיר True
+    Failure: אם לא קיים -> מחזיר False
+    """
+    item = get_item_by_id(db, item_id)
+    if not item:
+        return False
+
+    db.delete(item)
+    db.commit()
+    return True

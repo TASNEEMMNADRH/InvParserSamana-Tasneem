@@ -1,13 +1,12 @@
 
-
 import base64
+import os
 import time
-
 import oci
-from models.invoice import create_invoice, get_invoice_by_id, get_invoice_by_vendor_name
-from models.item import create_item, get_items_by_invoice_id
+from mvc_model.models.invoice import create_invoice, get_invoice_by_id, get_invoice_by_vendor_name, get_invoices
+from mvc_model.models.item import create_item, get_items_by_invoice_id
 from mvc_model.models.confidence import create_confidence
-from mvc_model.myAppView import get_doc_client
+from mvc_model.services.oci_client import get_doc_client
 
 def get_invoice_with_items(db,invoice_id):
     invoice = get_invoice_by_id(db,invoice_id)
@@ -19,23 +18,25 @@ def get_invoice_with_items(db,invoice_id):
         } 
         return invoice_with_items
     return None
-
     
 def getInvoiceByVendorNameCon(db,vendor_name):
     myinvoices = []
     invoices = get_invoice_by_vendor_name(db,vendor_name)
+    for i in invoices:
+        print(i.InvoiceId)
+
     if invoices : 
         for invoice in invoices:
             invoice_id = invoice.InvoiceId
             items = get_items_by_invoice_id(db,invoice_id)
             invoice_with_items = {
-                "invoice" : invoice,
-                "items" : items
-            } 
+                    "invoice" : invoice,
+                    "items" : items
+                } 
             myinvoices.append(invoice_with_items)
             
     return {"VendorName": vendor_name if invoices else "Unknown Vendor",
-            "TotalInvoices": len(invoices),
+            "TotalInvoices": len(myinvoices),
             "invoices":myinvoices}
    
 
@@ -136,34 +137,31 @@ def extract_invoice_controller(db, pdf_bytes: bytes) -> dict:
         "dataConfidence": data_confidence,
         "predictionTime": prediction_time,
     }
-
     # 7) Save to DB using models (CRUD)
     #    - Create invoice
+    #created = get_invoice_by_id(db,data.get("InvoiceId"))
+    #if not created:
     invoice_obj = create_invoice(db, data)
-
-    #    - Create items (if exist)
+        #    - Create items (if exist)
     for item_dict in data.get("Items", []):
         item_dict["InvoiceId"] = invoice_obj.InvoiceId
         create_item(db, item_dict)
 
-    #    - Create confidence row
+        #    - Create confidence row
     create_confidence(
         db,
         {
-            "InvoiceId": invoice_obj.InvoiceId,
-            "VendorName": data_confidence.get("VendorName", 0.0),
-            "InvoiceDate": data_confidence.get("InvoiceDate", 0.0),
-            "BillingAddressRecipient": data_confidence.get("BillingAddressRecipient", 0.0),
-            "ShippingAddress": data_confidence.get("ShippingAddress", 0.0),
-            "SubTotal": data_confidence.get("SubTotal", 0.0),
-            "ShippingCost": data_confidence.get("ShippingCost", 0.0),
-            "InvoiceTotal": data_confidence.get("InvoiceTotal", 0.0),
-        },
-    )
-
+        "InvoiceId": invoice_obj.InvoiceId,
+        "VendorName": data_confidence.get("VendorName", 0.0),
+        "InvoiceDate": data_confidence.get("InvoiceDate", 0.0),
+        "BillingAddressRecipient": data_confidence.get("BillingAddressRecipient", 0.0),
+        "ShippingAddress": data_confidence.get("ShippingAddress", 0.0),
+        "SubTotal": data_confidence.get("SubTotal", 0.0),
+        "ShippingCost": data_confidence.get("ShippingCost", 0.0),
+        "InvoiceTotal": data_confidence.get("InvoiceTotal", 0.0),
+    },
+)
     return result
-
-
 
 ###################################################Cleaner Functions################################## 
 """

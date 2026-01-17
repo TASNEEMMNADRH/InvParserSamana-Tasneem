@@ -13,3 +13,4 @@ pytest-html
 sqlalchemy
 
 allure-pytest
+sqlalchemy

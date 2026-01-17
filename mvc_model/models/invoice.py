@@ -1,11 +1,12 @@
 # models.py
 from typing import List, Optional
-from pytest import Session
 from sqlalchemy import Column, String, Integer, Float, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import  Session
+from sqlalchemy import func
 
 # All models inherit from this base class
-from base import Base
+from mvc_model.models.base import Base
 
 
 class Invoice(Base):
@@ -31,6 +32,8 @@ class Invoice(Base):
 
 #---------------------------------CRUD-----------------------------------#
 def create_invoice(db: Session, invoice_data: dict) -> Invoice:
+    if not invoice_data:
+        return None
     invoice= Invoice(
         InvoiceId=invoice_data.get("InvoiceId"),
         VendorName=invoice_data.get("VendorName"),
@@ -40,23 +43,22 @@ def create_invoice(db: Session, invoice_data: dict) -> Invoice:
         SubTotal=invoice_data.get("SubTotal"),
         ShippingCost=invoice_data.get("ShippingCost"),
         InvoiceTotal=invoice_data.get("InvoiceTotal"))
-    
     db.add(invoice)
     db.commit()
-    db.refresh(invoice)
+    db.refresh
     return invoice
 
 
 def get_invoice_by_id(db: Session, invoice_id: str) -> Optional[Invoice]:
-    invoice=db.query(Invoice).filter(Invoice.InvoiceId==invoice_id).first()
-    return invoice
+    invoiceItem = db.query(Invoice).filter(Invoice.InvoiceId == invoice_id).first()
+    return invoiceItem
 
 def get_invoice_by_vendor_name(db: Session, vendor_name: str) -> List[Invoice]:
-    invoices=db.query(Invoice).filter(Invoice.VendorName==vendor_name).all()
+    invoices = db.query(Invoice).filter(Invoice.VendorName == vendor_name).all()
     return invoices
 
 def get_invoices(db: Session) -> List[Invoice]:
-    invoices=db.query(Invoice).all()
+    invoices = db.query(Invoice).all()
     return invoices
 
 
